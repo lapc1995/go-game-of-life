@@ -187,7 +187,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth int, screenH
 }
 
 func main() {
-	var cellSize int = 10
+	var cellSize int = 2
 	var screenWidth int = 1000
 	var screenHeight int = 1000
 	var numberOfCellsWidth int = screenHeight / cellSize
