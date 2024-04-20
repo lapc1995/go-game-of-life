@@ -16,6 +16,8 @@ import (
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/golang/freetype/truetype"
+
+	"github.com/fstanis/screenresolution"
 )
 
 type Game struct {
@@ -41,6 +43,9 @@ type Game struct {
 	maxX        int
 	minY        int
 	maxY        int
+
+	currentScreenWidth  int
+	currentScreenHeight int
 }
 
 type GameCell struct {
@@ -275,7 +280,7 @@ func (g *Game) StartGame() {
 func (g *Game) Draw(screen *ebiten.Image) {
 
 	drawImageOptions := ebiten.DrawImageOptions{}
-	drawImageOptions.GeoM.Translate(2000/2-800/2, 1000/2-800/2)
+	drawImageOptions.GeoM.Translate(float64(g.currentScreenWidth)/2-800/2, float64(g.currentScreenHeight)/2-800/2)
 	if g.zoomLevel > 0 {
 
 		new_scale := 1000 / float64(g.zoomX)
@@ -299,6 +304,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth int, screenH
 }
 
 func main() {
+
+	resolution := screenresolution.GetPrimary()
+
 	var cellSize int = 10
 	var screenWidth int = 800
 	var screenHeight int = 800
@@ -320,6 +328,9 @@ func main() {
 		zoomLevel:   0,
 		zoomCenterX: 0,
 		zoomCenterY: 0,
+
+		currentScreenWidth:  resolution.Width,
+		currentScreenHeight: resolution.Height,
 	}
 
 	game.StartGame()
@@ -343,14 +354,28 @@ func main() {
 			}
 		}*/
 
-	ebiten.SetWindowSize(2000, 1000)
+	ebiten.SetWindowSize(resolution.Width, resolution.Height)
 	ebiten.SetWindowTitle("Game Of Life")
 
 	ebiten.SetFullscreen(false)
 
-	// This creates the root container for this UI.
-	// All other UI elements must be added to this container.
-	rootContainer := widget.NewContainer()
+	//This creates the root container for this UI.
+	rootContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewGridLayout(
+			// It is using a GridLayout with a single column
+			widget.GridLayoutOpts.Columns(3),
+			// It uses the Stretch parameter to define how the rows will be layed out.
+			// - a fixed sized header
+			// - a content row that stretches to fill all remaining space
+			// - a fixed sized footer
+			widget.GridLayoutOpts.Stretch([]bool{true}, []bool{false, true, false}),
+			// Padding defines how much space to put around the outside of the grid.
+			widget.GridLayoutOpts.Padding(widget.Insets{
+				Top:    20,
+				Bottom: 20,
+			}),
+			// Spacing defines how much space to put between each column and row
+			widget.GridLayoutOpts.Spacing(0, 20))))
 
 	// This adds the root container to the UI, so that it will be rendered.
 	eui := &ebitenui.UI{
@@ -368,6 +393,20 @@ func main() {
 
 	helloWorldLabel := widget.NewText(
 		widget.TextOpts.Text("Hello World!", fontFace, color.White),
+		widget.TextOpts.WidgetOpts(
+
+			/*
+				widget.WidgetOptions.LayoutData(widget.GridLayoutData{
+					MaxWidth:           10,
+					MaxHeight:          10,
+					HorizontalPosition: 2,
+					VerticalPosition:   2,
+				}),*/
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+			}),
+		),
 	)
 
 	rootContainer.AddChild(helloWorldLabel)
